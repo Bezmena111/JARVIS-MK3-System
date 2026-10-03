@@ -54,6 +54,11 @@ function speak(text) {
   window.speechSynthesis.speak(speech);
 }
 
+function parseDomain(raw) {
+  const cleaned = String(raw || '').trim();
+  return cleaned.replace(/^https?:\/\//i, '').replace(/\/$/, '').replace(/[^a-zA-Z0-9.-]/g, '');
+}
+
 function checkLink(url) {
   const value = String(url || '');
   const isHttps = value.startsWith('https://');
@@ -77,8 +82,42 @@ function checkPassword(value) {
   return `Heslo: ${pwd} // ${levels[Math.min(score, levels.length - 1)]}`;
 }
 
+async function hashText(algo, value) {
+  if (!value) return 'Nezadali ste žiadnu hodnotu na hashovanie.';
+  const text = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest(algo, text);
+  const bytes = Array.from(new Uint8Array(digest));
+  const hex = bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `${algo.toUpperCase()}: ${hex}`;
+}
+
+function simulateDns(domain) {
+  const name = parseDomain(domain || 'example.com');
+  const records = {
+    A: '93.184.216.34',
+    AAAA: '2606:2800:220:1:248:1893:25c8:1946',
+    MX: 'mail.example.com',
+    TXT: 'spf=redirect=_spf.example.com'
+  };
+
+  return `DNS REPORT pre ${name}: A=${records.A}; AAAA=${records.AAAA}; MX=${records.MX}; TXT=${records.TXT};`;
+}
+
+function simulateLocalScan() {
+  const ports = [
+    { port: 21, status: 'CLOSED' },
+    { port: 22, status: 'OPEN' },
+    { port: 80, status: 'OPEN' },
+    { port: 443, status: 'OPEN' },
+    { port: 3306, status: 'CLOSED' },
+    { port: 8080, status: 'FILTERED' }
+  ];
+
+  return 'LOCAL SERVICE STATUS: ' + ports.map((p) => `p${p.port}=${p.status}`).join(' | ');
+}
+
 function runSecurityAudit(domain) {
-  const safeDomain = String(domain || 'example.com').replace(/[^a-zA-Z0-9.-]/g, '');
+  const safeDomain = parseDomain(domain || 'example.com');
   setThreatLevel('MEDIUM');
   setNetworkState('ANALYZING');
 
@@ -154,7 +193,7 @@ function parseCommand(raw) {
   const lower = text.toLowerCase();
 
   if (lower.includes('status') || lower.includes('stav')) {
-    return 'Systém online. Firewall aktívny. Bio-lock zapnutý. Dôsledná ochrana v režime DEFENCE.';
+    return 'Systém online. Firewall aktívny. Bio-lock zapnutý. Dôsledná ochrana v režime REDLINE.';
   }
 
   if (lower.includes('hodín') || lower.includes('time') || lower.includes('čas')) {
@@ -165,22 +204,18 @@ function parseCommand(raw) {
     return `Dnes je ${new Date().toLocaleDateString('sk-SK')}`;
   }
 
-  if (lower.includes('youtube')) {
-    return openPage('https://youtube.com', 'YouTube');
-  }
-
-  if (lower.includes('google')) {
-    return openPage('https://google.com', 'Google');
-  }
-
-  if (lower.includes('plane crazy') || lower.includes('plane-crazy')) {
-    return openPage('https://www.roblox.com/games/12742348/Plane-Crazy', 'Plane Crazy');
-  }
+  if (lower.includes('youtube')) return openPage('https://youtube.com', 'YouTube');
+  if (lower.includes('google')) return openPage('https://google.com', 'Google');
+  if (lower.includes('plane crazy') || lower.includes('plane-crazy')) return openPage('https://www.roblox.com/games/12742348/Plane-Crazy', 'Plane Crazy');
 
   if (lower.includes('scan') || lower.includes('oskenuj') || lower.includes('skenuj')) {
     setNetworkState('SCANNING');
     setThreatLevel('MEDIUM');
     return 'Skenujem sieť. Hľadám zraniteľnosti a anomálie v okolí.';
+  }
+
+  if (lower.includes('scanlocal') || lower.includes('lokálny scan') || lower.includes('local scan')) {
+    return simulateLocalScan();
   }
 
   if (lower.includes('vyhľadaj') || lower.includes('search') || lower.includes('hľadaj')) {
@@ -190,19 +225,7 @@ function parseCommand(raw) {
     return `Vyhľadávam: ${q}`;
   }
 
-  if (lower.includes('help') || lower.includes('pomoc')) {
-    return 'Dostupné príkazy: status, time, date, youtube, google, scan, search, password, link, panic, unlock, biometric, joke, fact, shutdown, reboot, mute, help.';
-  }
-
-  if (lower.includes('joke') || lower.includes('vtip')) {
-    return 'Kapitán, keď AI vylezie z testu: “Aha, to bol iba feature, nie bug.”';
-  }
-
-  if (lower.includes('fact') || lower.includes('zaujímavost')) {
-    return 'Fakt: 80% bezpečnostných incidentov začína ľudskou zvedavosťou a slabým heslom.';
-  }
-
-  if (lower.includes('heslo') || lower.includes('password')) {
+  if (lower.includes('password') || lower.includes('heslo')) {
     const match = text.match(/(?:heslo|password)\s+(.+)/i);
     const value = match ? match[1] : 'MojeHeslo123';
     return checkPassword(value);
@@ -214,35 +237,34 @@ function parseCommand(raw) {
     return checkLink(url);
   }
 
-  if (lower.includes('start') && lower.includes('listen')) {
-    return 'Počúvam. Môžem reagovať na príkazy hlasom alebo z klávesnice.';
+  if (lower.includes('hash')) {
+    const match = text.match(/hash\s+(sha-256|sha256|md5)\s+(.+)/i) || text.match(/hash\s+(.+)/i);
+    if (match) {
+      const algo = (match[1] || 'sha-256').toLowerCase().replace('sha256', 'sha-256');
+      const value = match[2] || match[1];
+      return hashText(algo, value);
+    }
+    return 'Použitie: hash sha-256 text alebo hash md5 text';
+  }
+
+  if (lower.includes('dns')) {
+    const match = text.match(/dns\s+([^\s]+)/i);
+    const domain = match ? match[1] : 'example.com';
+    return simulateDns(domain);
+  }
+
+  if (lower.includes('audit') || lower.includes('security') || lower.includes('oscanuj')) {
+    const domain = text.replace(/^(.*?)(security|audit|oscanuj|audituj)\s+/i, '').trim() || 'example.com';
+    return runSecurityAudit(domain);
+  }
+
+  if (lower.includes('help') || lower.includes('pomoc')) {
+    return 'Dostupné príkazy: status, time, password, link, hash, dns, audit, local scan, panic, biometria, help.';
   }
 
   if (lower.includes('panic') || lower.includes('panika')) {
     window.open('about:blank', '_self');
     return '🚨 PANIC MODE aktivovaný. Všetko sa uzatvára.';
-  }
-
-  if (lower.includes('shutdown') || lower.includes('vypni')) {
-    statusEl.textContent = 'SYSTEM OFFLINE';
-    setNetworkState('OFFLINE');
-    return 'Systém je deaktivovaný na bezpečnostnom režime.';
-  }
-
-  if (lower.includes('reboot') || lower.includes('reštart')) {
-    statusEl.textContent = 'RESTARTING';
-    setNetworkState('BOOTING');
-    return 'JARVIS sa reštartuje a obnovuje obranné systémy.';
-  }
-
-  if (lower.includes('mute') || lower.includes('ztlmi')) {
-    state.audioEnabled = false;
-    return 'Zvukový výstup je stlmený. Príkazy budú pracovať bez hlasu.';
-  }
-
-  if (lower.includes('unmute') || lower.includes('zapni zvuk')) {
-    state.audioEnabled = true;
-    return 'Zvukový výstup je opäť zapnutý.';
   }
 
   if (lower.includes('biometric') || lower.includes('biometria') || lower.includes('unlock')) {
@@ -253,34 +275,31 @@ function parseCommand(raw) {
     return registerBiometric();
   }
 
-  if (lower.includes('security') || lower.includes('audit') || lower.includes('oscanuj') || lower.includes('audituj')) {
-    const domain = text.replace(/^(.*?)(security|audit|oscanuj|audituj)\s+/i, '').trim() || 'example.com';
-    return runSecurityAudit(domain);
+  if (lower.includes('joke') || lower.includes('vtip')) {
+    return 'Kapitán, keď previerka zistí phishingový link: “To bolo skvelé, ale už to je v logu.”';
   }
 
-  if (lower.includes('kto si') || lower.includes('who are you')) {
-    return 'Som JARVIS MK3 – tvoj kybernetický asistent, kapitán. Som tu, aby som chrániľ tvoj systém, zbieral dáta a vykonával rozkazy.';
-  }
-
-  if (lower.includes('open') || lower.includes('otvor')) {
-    const target = text.replace(/^(open|otvor)\s+/i, '').trim();
-    if (target.includes('youtube')) return openPage('https://youtube.com', 'YouTube');
-    if (target.includes('google')) return openPage('https://google.com', 'Google');
-    return `Mám otvoriť: ${target || 'stránku'}.`;
+  if (lower.includes('toolkit') || lower.includes('security toolkit')) {
+    return 'SECURITY TOOLKIT ONLINE: password checker, hash generator, link validator, DNS report, local scan, audit report.';
   }
 
   return `Rozumiem: "${text}". Bez API kľúča pracujem v offline režime. Pre pomoc napíš: pomoc.`;
 }
 
-function executeCommand(inputValue) {
+async function executeCommand(inputValue) {
   const value = String(inputValue || '').trim();
   if (!value) return;
 
   log('TY', value);
   const result = parseCommand(value);
-  if (result) {
+
+  if (typeof result === 'string') {
     log('JARVIS', result);
     speak(result);
+  } else if (result && typeof result.then === 'function') {
+    const resolved = await result;
+    log('JARVIS', resolved);
+    speak(resolved);
   }
 }
 
@@ -335,6 +354,12 @@ document.querySelectorAll('[data-command]').forEach((button) => {
       time: 'time',
       scan: 'scan',
       panic: 'panic',
+      password: 'password test123',
+      audit: 'security audit example.com',
+      hash: 'hash sha-256 jarvis',
+      link: 'link https://example.com',
+      dns: 'dns example.com',
+      scanlocal: 'local scan'
     };
     executeCommand(commandMap[command] || command);
   });
@@ -370,7 +395,7 @@ document.querySelectorAll('.key').forEach((key) => {
     }
 
     if (action === 'defence') {
-      executeCommand('scan');
+      executeCommand('security audit example.com');
       return;
     }
 
@@ -386,10 +411,10 @@ document.querySelectorAll('.key').forEach((key) => {
 });
 
 window.addEventListener('load', () => {
-  log('JARVIS', 'JARVIS Mark 3 online. Typ alebo klikni do klávesnice.');
+  log('JARVIS', 'JARVIS REDLINE online. Typ alebo klikni do klávesnice.');
   setNetworkState('ONLINE');
   setThreatLevel('LOW');
-  powerLevelEl.textContent = '97%';
+  powerLevelEl.textContent = '98%';
   blockedEl.textContent = '0';
 
   if ('speechSynthesis' in window) {
@@ -409,4 +434,3 @@ const panel = document.querySelector('.right-panel');
 if (panel) {
   panel.appendChild(voiceBtn);
 }
-

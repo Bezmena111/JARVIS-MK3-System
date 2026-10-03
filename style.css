@@ -1,15 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
 
 :root {
-  --bg-1: #02060a;
-  --bg-2: #00151d;
-  --panel: rgba(0, 25, 35, 0.72);
-  --line: rgba(0, 242, 255, 0.6);
-  --cyan: #00f2ff;
-  --gold: #ffcc00;
-  --red: #ff2200;
-  --green: #2ed573;
-  --text: #dffcff;
+  --bg-1: #090505;
+  --bg-2: #1a0908;
+  --panel: rgba(24, 7, 7, 0.86);
+  --line: rgba(255, 125, 100, 0.7);
+  --gold: #f7c75a;
+  --gold-soft: #ffd98c;
+  --red: #ff3c2e;
+  --red-dark: #6c120d;
+  --black: #070606;
+  --green: #ffb86b;
+  --text: #ffe2c0;
 }
 
 * {
@@ -21,7 +23,7 @@ html, body {
   width: 100%;
   height: 100%;
   font-family: 'Orbitron', monospace;
-  background: radial-gradient(circle at center, #07151b 0%, #02060a 55%, #000 100%);
+  background: radial-gradient(circle at center, #2b0a09 0%, #120504 42%, #000 100%);
   color: var(--text);
   overflow: hidden;
 }
@@ -44,9 +46,9 @@ body {
 
 .panel {
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(0, 25, 35, 0.8), rgba(0, 5, 12, 0.9));
+  background: linear-gradient(180deg, rgba(34, 10, 10, 0.9), rgba(9, 5, 5, 0.96));
   border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.15) inset;
+  box-shadow: 0 0 18px rgba(255, 60, 46, 0.2) inset, 0 0 28px rgba(0, 0, 0, 0.6);
   padding: 12px;
   backdrop-filter: blur(6px);
   position: relative;
@@ -60,7 +62,7 @@ body {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
 #top {
@@ -69,10 +71,10 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.4px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--cyan);
+  color: var(--gold-soft);
 }
 
 #core {
@@ -82,7 +84,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, rgba(7, 24, 29, 1) 0%, rgba(0, 0, 0, 0.9) 70%);
+  background: radial-gradient(circle, rgba(28, 7, 7, 1) 0%, rgba(0, 0, 0, 0.9) 75%);
 }
 
 #ring,
@@ -94,15 +96,15 @@ body {
 #ring {
   width: 340px;
   height: 340px;
-  border: 1px dashed rgba(0, 242, 255, 0.5);
+  border: 1px dashed rgba(247, 199, 90, 0.5);
   animation: spin 10s linear infinite;
-  box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+  box-shadow: 0 0 30px rgba(255, 60, 46, 0.12);
 }
 
 #ring2 {
   width: 380px;
   height: 380px;
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  border: 1px solid rgba(255, 156, 69, 0.22);
   animation: spin 13s linear infinite reverse;
 }
 
@@ -110,15 +112,15 @@ body {
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  border: 4px solid var(--cyan);
-  box-shadow: 0 0 60px rgba(0, 242, 255, 0.7), 0 0 100px rgba(0, 242, 255, 0.2) inset;
+  border: 4px solid var(--gold);
+  box-shadow: 0 0 60px rgba(255, 60, 46, 0.6), 0 0 100px rgba(255, 201, 92, 0.2) inset;
   animation: pulse 2s infinite;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 56px;
-  color: var(--cyan);
-  text-shadow: 0 0 12px rgba(0, 242, 255, 0.8);
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 185, 0, 0.8);
 }
 
 .command-box {
@@ -128,10 +130,10 @@ body {
 
 #holo-input {
   width: 100%;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 204, 0, 0.42);
+  background: rgba(0, 0, 0, 0.48);
+  border: 1px solid rgba(247, 199, 90, 0.5);
   border-radius: 10px;
-  color: var(--gold);
+  color: var(--gold-soft);
   padding: 12px 14px;
   font-family: 'Orbitron', monospace;
   font-size: 14px;
@@ -139,12 +141,12 @@ body {
 }
 
 #holo-input::placeholder {
-  color: rgba(255, 204, 0, 0.65);
+  color: rgba(255, 214, 132, 0.7);
 }
 
 .bar {
   height: 6px;
-  background: rgba(0, 42, 51, 0.8);
+  background: rgba(39, 12, 10, 0.9);
   border-radius: 3px;
   overflow: hidden;
   margin: 6px 0;
@@ -152,15 +154,15 @@ body {
 
 .fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--cyan), #60d7ff);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.7);
+  background: linear-gradient(90deg, var(--red), var(--gold));
+  box-shadow: 0 0 10px rgba(255, 60, 46, 0.7);
   width: 0%;
   transition: 1s ease;
 }
 
 .fill-95 { width: 95%; }
 .fill-78 { width: 78%; }
-.fill-97 { width: 97%; }
+.fill-98 { width: 98%; }
 
 #log {
   grid-column: 1 / 4;
@@ -179,8 +181,8 @@ body {
   margin-top: 26px;
   font-size: 16px;
   text-transform: uppercase;
-  color: var(--cyan);
-  text-shadow: 0 0 10px rgba(0, 242, 255, 0.7);
+  color: var(--gold-soft);
+  text-shadow: 0 0 10px rgba(255, 160, 0, 0.7);
 }
 
 #holo-keyboard {
@@ -199,7 +201,7 @@ body {
   gap: 6px;
   transform: rotateX(18deg);
   transform-origin: bottom;
-  filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.55));
+  filter: drop-shadow(0 0 15px rgba(255, 160, 0, 0.5));
 }
 
 .key {
@@ -208,19 +210,19 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  border: 1px solid rgba(255, 204, 0, 0.6);
-  background: linear-gradient(180deg, rgba(255, 204, 0, 0.15), rgba(50, 25, 0, 0.8));
-  color: var(--gold);
+  border: 1px solid rgba(247, 199, 90, 0.7);
+  background: linear-gradient(180deg, rgba(255, 184, 0, 0.12), rgba(38, 12, 10, 0.88));
+  color: var(--gold-soft);
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   user-select: none;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
-  box-shadow: inset 0 0 12px rgba(255, 204, 0, 0.12);
+  box-shadow: inset 0 0 12px rgba(255, 163, 39, 0.1);
 }
 
 .key:hover {
-  box-shadow: 0 0 16px rgba(255, 204, 0, 0.18);
+  box-shadow: 0 0 16px rgba(255, 188, 0, 0.18);
 }
 
 .key.pressed {
@@ -228,15 +230,15 @@ body {
 }
 
 .key.red {
-  color: #ffb0a1;
-  border-color: rgba(255, 34, 0, 0.8);
-  background: linear-gradient(180deg, rgba(255, 34, 0, 0.18), rgba(80, 10, 0, 0.8));
+  color: #ffd4c4;
+  border-color: rgba(255, 60, 46, 0.9);
+  background: linear-gradient(180deg, rgba(255, 60, 46, 0.18), rgba(72, 7, 2, 0.9));
 }
 
 .key.gold {
-  color: #1c1200;
-  background: linear-gradient(180deg, #ffd75a, #ffb700);
-  border-color: rgba(255, 187, 0, 0.8);
+  color: #1a1200;
+  background: linear-gradient(180deg, #ffd76a, #ffb034);
+  border-color: rgba(255, 170, 0, 0.8);
   font-weight: 900;
 }
 
@@ -259,28 +261,28 @@ body {
 
 .shortcut-list button,
 .voice-toggle {
-  background: rgba(0, 242, 255, 0.08);
+  background: rgba(255, 60, 46, 0.08);
   border: 1px solid var(--line);
   border-radius: 6px;
-  color: var(--cyan);
+  color: var(--gold-soft);
   padding: 6px 8px;
   font-family: 'Orbitron', monospace;
   cursor: pointer;
   margin-top: 8px;
 }
 
-.ok { color: var(--green); }
-.warn { color: var(--red); }
+.ok { color: var(--gold-soft); }
+.warn { color: #ff8d7d; }
 .sec { color: var(--gold); }
 
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 60px rgba(0, 242, 255, 0.7);
+    box-shadow: 0 0 60px rgba(255, 60, 46, 0.6);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 90px rgba(0, 242, 255, 0.9);
+    box-shadow: 0 0 90px rgba(255, 195, 0, 0.85);
   }
 }
 
@@ -308,4 +310,3 @@ body {
     grid-column: 1;
   }
 }
-
