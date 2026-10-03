@@ -10,6 +10,12 @@ const powerLevelEl = document.getElementById('powerLevel');
 const memory = [];
 const commandHistory = [];
 
+const state = {
+  bioRegistered: !!localStorage.getItem('jarvis_bio'),
+  voiceEnabled: false,
+  audioEnabled: true,
+};
+
 function log(who, text) {
   const row = document.createElement('div');
   row.innerHTML = `<b>${who}:</b> ${text}`;
@@ -30,8 +36,8 @@ function setThreatLevel(level) {
   threatLevelEl.className = level === 'HIGH' ? 'warn' : level === 'MEDIUM' ? 'sec' : 'ok';
 }
 
-function setNetworkState(state) {
-  networkStateEl.textContent = state;
+function setNetworkState(stateText) {
+  networkStateEl.textContent = stateText;
 }
 
 function openPage(url, label) {
@@ -39,113 +45,13 @@ function openPage(url, label) {
   return `${label} bol spustený.`;
 }
 
-function parseCommand(raw) {
-  const text = String(raw || '').trim();
-  if (!text) return null;
-
-  commandHistory.push(text);
-  const lower = text.toLowerCase();
-
-  if (lower.includes('status') || lower.includes('stav')) {
-    return 'Systém online. Firewall aktívny. Bio-lock zapnutý. Dôsledná ochrana v režime DEFENCE.';
-  }
-
-  if (lower.includes('hodín') || lower.includes('time')) {
-    return `Je ${new Date().toLocaleTimeString('sk-SK')}`;
-  }
-
-  if (lower.includes('dátum') || lower.includes('date')) {
-    return `Dnes je ${new Date().toLocaleDateString('sk-SK')}`;
-  }
-
-  if (lower.includes('youtube')) {
-    return openPage('https://youtube.com', 'YouTube');
-  }
-
-  if (lower.includes('google')) {
-    return openPage('https://google.com', 'Google');
-  }
-
-  if (lower.includes('plane crazy') || lower.includes('plane-crazy')) {
-    return openPage('https://www.roblox.com/games/12742348/Plane-Crazy', 'Plane Crazy');
-  }
-
-  if (lower.includes('scan') || lower.includes('oskenuj')) {
-    setNetworkState('SCANNING');
-    setThreatLevel('MEDIUM');
-    return 'Skenujem sieť. Hľadám zraniteľnosti a anomálie v okolí.';
-  }
-
-  if (lower.includes('vyhľadaj') || lower.includes('search')) {
-    const q = text.replace(/^(vyhľadaj|search)\s+/i, '').trim();
-    if (!q) return 'Na čo mám vyhľadať?';
-    window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
-    return `Vyhľadávam: ${q}`;
-  }
-
-  if (lower.includes('help') || lower.includes('pomoc')) {
-    return 'Dostupné príkazy: status, time, date, youtube, google, scan, search, password, link, panic, unlock, biometric, joke, fact, shutdown, reboot, mute, help.';
-  }
-
-  if (lower.includes('joke') || lower.includes('vtip')) {
-    return 'Kapitán, keď AI vylezie z testu: “Aha, to bol iba feature, nie bug.”';
-  }
-
-  if (lower.includes('fact') || lower.includes('zaujímavost')) {
-    return 'Fakt: 80% bezpečnostných incidentov začína ľudskou zvedavosťou a slabým heslom.';
-  }
-
-  if (lower.includes('heslo') || lower.includes('password')) {
-    const match = text.match(/(?:heslo|password)\s+(.+)/i);
-    const value = match ? match[1] : 'MojeHeslo123';
-    return checkPassword(value);
-  }
-
-  if (lower.includes('link') || lower.includes('odkaz')) {
-    const match = text.match(/https?:\/\/[^\s]+/i);
-    const url = match ? match[0] : 'https://example.com';
-    return checkLink(url);
-  }
-
-  if (lower.includes('start') && lower.includes('listen')) {
-    return 'Počúvam. Môžem reagovať na príkazy hlasom alebo z klávesnice.';
-  }
-
-  if (lower.includes('panic') || lower.includes('panika')) {
-    window.open('about:blank', '_self');
-    return '🚨 PANIC MODE aktivovaný. Všetko sa uzatvára.';
-  }
-
-  if (lower.includes('shutdown') || lower.includes('vypni')) {
-    statusEl.textContent = 'SYSTEM OFFLINE';
-    setNetworkState('OFFLINE');
-    return 'Systém je deaktivovaný na bezpečnostnom režime.';
-  }
-
-  if (lower.includes('reboot') || lower.includes('reštart')) {
-    statusEl.textContent = 'RESTARTING';
-    setNetworkState('BOOTING');
-    return 'JARVIS sa reštartuje a obnovuje obranné systémy.';
-  }
-
-  if (lower.includes('mute') || lower.includes('ztlmi')) {
-    return 'Zvukový výstup je stlmený. Príkazy budú pracovať bez hlasu.';
-  }
-
-  if (lower.includes('biometric') || lower.includes('biometria') || lower.includes('unlock')) {
-    return biometricLogin();
-  }
-
-  if (lower.includes('register biometric') || lower.includes('zaregistruj biometriu')) {
-    return registerBiometric();
-  }
-
-  if (lower.includes('security') || lower.includes('audit') || lower.includes('oscanuj')) {
-    const domain = text.replace(/^(.*?)(security|audit|oscanuj)\s+/i, '').trim() || 'example.com';
-    return runSecurityAudit(domain);
-  }
-
-  return `Rozumiem: "${text}". Bez API kľúča pracujem v offline režime. Pre pomoc napíš: pomoc.`;
+function speak(text) {
+  if (!state.audioEnabled) return;
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = 'sk-SK';
+  speech.rate = 1;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(speech);
 }
 
 function checkLink(url) {
@@ -206,6 +112,7 @@ async function registerBiometric() {
     });
 
     localStorage.setItem('jarvis_bio', 'registered');
+    state.bioRegistered = true;
     return 'Biometria zaregistrovaná, kapitán.';
   } catch (e) {
     return `Biometria zlyhala: ${e.message || 'Neznáma chyba'}`;
@@ -239,6 +146,132 @@ async function biometricLogin() {
   }
 }
 
+function parseCommand(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return null;
+
+  commandHistory.push(text);
+  const lower = text.toLowerCase();
+
+  if (lower.includes('status') || lower.includes('stav')) {
+    return 'Systém online. Firewall aktívny. Bio-lock zapnutý. Dôsledná ochrana v režime DEFENCE.';
+  }
+
+  if (lower.includes('hodín') || lower.includes('time') || lower.includes('čas')) {
+    return `Je ${new Date().toLocaleTimeString('sk-SK')}`;
+  }
+
+  if (lower.includes('dátum') || lower.includes('date') || lower.includes('deň')) {
+    return `Dnes je ${new Date().toLocaleDateString('sk-SK')}`;
+  }
+
+  if (lower.includes('youtube')) {
+    return openPage('https://youtube.com', 'YouTube');
+  }
+
+  if (lower.includes('google')) {
+    return openPage('https://google.com', 'Google');
+  }
+
+  if (lower.includes('plane crazy') || lower.includes('plane-crazy')) {
+    return openPage('https://www.roblox.com/games/12742348/Plane-Crazy', 'Plane Crazy');
+  }
+
+  if (lower.includes('scan') || lower.includes('oskenuj') || lower.includes('skenuj')) {
+    setNetworkState('SCANNING');
+    setThreatLevel('MEDIUM');
+    return 'Skenujem sieť. Hľadám zraniteľnosti a anomálie v okolí.';
+  }
+
+  if (lower.includes('vyhľadaj') || lower.includes('search') || lower.includes('hľadaj')) {
+    const q = text.replace(/^(vyhľadaj|search|hľadaj)\s+/i, '').trim();
+    if (!q) return 'Na čo mám vyhľadať?';
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+    return `Vyhľadávam: ${q}`;
+  }
+
+  if (lower.includes('help') || lower.includes('pomoc')) {
+    return 'Dostupné príkazy: status, time, date, youtube, google, scan, search, password, link, panic, unlock, biometric, joke, fact, shutdown, reboot, mute, help.';
+  }
+
+  if (lower.includes('joke') || lower.includes('vtip')) {
+    return 'Kapitán, keď AI vylezie z testu: “Aha, to bol iba feature, nie bug.”';
+  }
+
+  if (lower.includes('fact') || lower.includes('zaujímavost')) {
+    return 'Fakt: 80% bezpečnostných incidentov začína ľudskou zvedavosťou a slabým heslom.';
+  }
+
+  if (lower.includes('heslo') || lower.includes('password')) {
+    const match = text.match(/(?:heslo|password)\s+(.+)/i);
+    const value = match ? match[1] : 'MojeHeslo123';
+    return checkPassword(value);
+  }
+
+  if (lower.includes('link') || lower.includes('odkaz')) {
+    const match = text.match(/https?:\/\/[^\s]+/i);
+    const url = match ? match[0] : 'https://example.com';
+    return checkLink(url);
+  }
+
+  if (lower.includes('start') && lower.includes('listen')) {
+    return 'Počúvam. Môžem reagovať na príkazy hlasom alebo z klávesnice.';
+  }
+
+  if (lower.includes('panic') || lower.includes('panika')) {
+    window.open('about:blank', '_self');
+    return '🚨 PANIC MODE aktivovaný. Všetko sa uzatvára.';
+  }
+
+  if (lower.includes('shutdown') || lower.includes('vypni')) {
+    statusEl.textContent = 'SYSTEM OFFLINE';
+    setNetworkState('OFFLINE');
+    return 'Systém je deaktivovaný na bezpečnostnom režime.';
+  }
+
+  if (lower.includes('reboot') || lower.includes('reštart')) {
+    statusEl.textContent = 'RESTARTING';
+    setNetworkState('BOOTING');
+    return 'JARVIS sa reštartuje a obnovuje obranné systémy.';
+  }
+
+  if (lower.includes('mute') || lower.includes('ztlmi')) {
+    state.audioEnabled = false;
+    return 'Zvukový výstup je stlmený. Príkazy budú pracovať bez hlasu.';
+  }
+
+  if (lower.includes('unmute') || lower.includes('zapni zvuk')) {
+    state.audioEnabled = true;
+    return 'Zvukový výstup je opäť zapnutý.';
+  }
+
+  if (lower.includes('biometric') || lower.includes('biometria') || lower.includes('unlock')) {
+    return biometricLogin();
+  }
+
+  if (lower.includes('register biometric') || lower.includes('zaregistruj biometriu')) {
+    return registerBiometric();
+  }
+
+  if (lower.includes('security') || lower.includes('audit') || lower.includes('oscanuj') || lower.includes('audituj')) {
+    const domain = text.replace(/^(.*?)(security|audit|oscanuj|audituj)\s+/i, '').trim() || 'example.com';
+    return runSecurityAudit(domain);
+  }
+
+  if (lower.includes('kto si') || lower.includes('who are you')) {
+    return 'Som JARVIS MK3 – tvoj kybernetický asistent, kapitán. Som tu, aby som chrániľ tvoj systém, zbieral dáta a vykonával rozkazy.';
+  }
+
+  if (lower.includes('open') || lower.includes('otvor')) {
+    const target = text.replace(/^(open|otvor)\s+/i, '').trim();
+    if (target.includes('youtube')) return openPage('https://youtube.com', 'YouTube');
+    if (target.includes('google')) return openPage('https://google.com', 'Google');
+    return `Mám otvoriť: ${target || 'stránku'}.`;
+  }
+
+  return `Rozumiem: "${text}". Bez API kľúča pracujem v offline režime. Pre pomoc napíš: pomoc.`;
+}
+
 function executeCommand(inputValue) {
   const value = String(inputValue || '').trim();
   if (!value) return;
@@ -247,7 +280,44 @@ function executeCommand(inputValue) {
   const result = parseCommand(value);
   if (result) {
     log('JARVIS', result);
+    speak(result);
   }
+}
+
+function enableVoiceCommands() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    log('JARVIS', 'Webové rozpoznávanie reči nie je v tomto prehliadači podporované.');
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'sk-SK';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    state.voiceEnabled = true;
+    statusEl.textContent = 'POČÚVAM';
+    log('JARVIS', 'Počúvam príkaz...');
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    log('VOICE', transcript);
+    executeCommand(transcript);
+  };
+
+  recognition.onerror = (event) => {
+    log('ERROR', `Rozpoznanie reči zlyhalo: ${event.error}`);
+  };
+
+  recognition.onend = () => {
+    state.voiceEnabled = false;
+    statusEl.textContent = 'Čakám na príkaz, kapitán';
+  };
+
+  recognition.start();
 }
 
 inputEl.addEventListener('keydown', (event) => {
@@ -264,7 +334,7 @@ document.querySelectorAll('[data-command]').forEach((button) => {
       status: 'status',
       time: 'time',
       scan: 'scan',
-      panic: 'panic'
+      panic: 'panic',
     };
     executeCommand(commandMap[command] || command);
   });
@@ -320,6 +390,23 @@ window.addEventListener('load', () => {
   setNetworkState('ONLINE');
   setThreatLevel('LOW');
   powerLevelEl.textContent = '97%';
+  blockedEl.textContent = '0';
+
+  if ('speechSynthesis' in window) {
+    log('JARVIS', 'Hlasový výstup je pripravený.');
+  }
+
+  if (localStorage.getItem('jarvis_bio')) {
+    log('JARVIS', 'Biometrický lock je aktivovaný.');
+  }
 });
 
-blockedEl.textContent = '0';
+const voiceBtn = document.createElement('button');
+voiceBtn.textContent = '🎙️ VOICE';
+voiceBtn.className = 'voice-toggle';
+voiceBtn.addEventListener('click', enableVoiceCommands);
+const panel = document.querySelector('.right-panel');
+if (panel) {
+  panel.appendChild(voiceBtn);
+}
+
