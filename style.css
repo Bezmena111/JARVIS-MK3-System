@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+:root {
+  --bg-1: #02060a;
+  --bg-2: #00151d;
+  --panel: rgba(0, 25, 35, 0.72);
+  --line: rgba(0, 242, 255, 0.6);
+  --cyan: #00f2ff;
+  --gold: #ffcc00;
+  --red: #ff2200;
+  --green: #2ed573;
+  --text: #dffcff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Orbitron', monospace;
+  background: radial-gradient(circle at center, #07151b 0%, #02060a 55%, #000 100%);
+  color: var(--text);
+  overflow: hidden;
+}
+
+body {
+  letter-spacing: 0.5px;
+}
+
+#hud {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: 80px 1fr 120px;
+  gap: 12px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(0, 25, 35, 0.8), rgba(0, 5, 12, 0.9));
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.15) inset;
+  padding: 12px;
+  backdrop-filter: blur(6px);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+
+#top {
+  grid-column: 1 / 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+#core {
+  grid-column: 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(7, 24, 29, 1) 0%, rgba(0, 0, 0, 0.9) 70%);
+}
+
+#ring,
+#ring2 {
+  position: absolute;
+  border-radius: 50%;
+}
+
+#ring {
+  width: 340px;
+  height: 340px;
+  border: 1px dashed rgba(0, 242, 255, 0.5);
+  animation: spin 10s linear infinite;
+  box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+}
+
+#ring2 {
+  width: 380px;
+  height: 380px;
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  animation: spin 13s linear infinite reverse;
+}
+
+#arc {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 4px solid var(--cyan);
+  box-shadow: 0 0 60px rgba(0, 242, 255, 0.7), 0 0 100px rgba(0, 242, 255, 0.2) inset;
+  animation: pulse 2s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0, 242, 255, 0.8);
+}
+
+.command-box {
+  width: 100%;
+  margin-top: 22px;
+}
+
+#holo-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 204, 0, 0.42);
+  border-radius: 10px;
+  color: var(--gold);
+  padding: 12px 14px;
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  outline: none;
+}
+
+#holo-input::placeholder {
+  color: rgba(255, 204, 0, 0.65);
+}
+
+.bar {
+  height: 6px;
+  background: rgba(0, 42, 51, 0.8);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), #60d7ff);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.7);
+  width: 0%;
+  transition: 1s ease;
+}
+
+.fill-95 { width: 95%; }
+.fill-78 { width: 78%; }
+.fill-97 { width: 97%; }
+
+#log {
+  grid-column: 1 / 4;
+  overflow-y: auto;
+  font-size: 12px;
+  letter-spacing: 1px;
+  line-height: 1.5;
+}
+
+#log div {
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+#status {
+  margin-top: 26px;
+  font-size: 16px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.7);
+}
+
+#holo-keyboard {
+  grid-column: 1 / 4;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  perspective: 800px;
+  margin-top: 6px;
+}
+
+#keys {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+  transform: rotateX(18deg);
+  transform-origin: bottom;
+  filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.55));
+}
+
+.key {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 204, 0, 0.6);
+  background: linear-gradient(180deg, rgba(255, 204, 0, 0.15), rgba(50, 25, 0, 0.8));
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: inset 0 0 12px rgba(255, 204, 0, 0.12);
+}
+
+.key:hover {
+  box-shadow: 0 0 16px rgba(255, 204, 0, 0.18);
+}
+
+.key.pressed {
+  transform: translateY(4px);
+}
+
+.key.red {
+  color: #ffb0a1;
+  border-color: rgba(255, 34, 0, 0.8);
+  background: linear-gradient(180deg, rgba(255, 34, 0, 0.18), rgba(80, 10, 0, 0.8));
+}
+
+.key.gold {
+  color: #1c1200;
+  background: linear-gradient(180deg, #ffd75a, #ffb700);
+  border-color: rgba(255, 187, 0, 0.8);
+  font-weight: 900;
+}
+
+.key.wide {
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.key.space {
+  grid-column: span 3;
+  font-size: 11px;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.shortcut-list button {
+  background: rgba(0, 242, 255, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--cyan);
+  padding: 6px 8px;
+  font-family: 'Orbitron', monospace;
+  cursor: pointer;
+}
+
+.ok { color: var(--green); }
+.warn { color: var(--red); }
+.sec { color: var(--gold); }
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 60px rgba(0, 242, 255, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 90px rgba(0, 242, 255, 0.9);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  #hud {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto auto;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  #top,
+  #core,
+  #log,
+  #holo-keyboard,
+  .left-panel,
+  .right-panel {
+    grid-column: 1;
+  }
+}

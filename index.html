@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JARVIS MK3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hud">
+    <div id="top" class="panel">
+      <div>◉ JARVIS MK3 // BIO LOCK // DEFENCE ACTIVE</div>
+      <div id="clock">00:00:00</div>
+      <div id="systemStats">❤️ SYS: 100% | CPU: 12%</div>
+    </div>
+
+    <aside class="panel left-panel">
+      <h4>🛡️ DEFENCE</h4>
+      <div>Firewall: <span class="ok">ACTIVE</span></div>
+      <div>Bio Lock: <span class="ok">ON</span></div>
+      <div class="bar"><div class="fill fill-95"></div></div>
+      <div>Threats blocked: <span id="blocked">0</span></div>
+      <br />
+      <h4>📡 SENSORS</h4>
+      <div>Network: <span id="networkState">SCANNING</span></div>
+      <div>Biometrics: READY</div>
+      <div>Threat level: <span id="threatLevel">LOW</span></div>
+    </aside>
+
+    <main id="core" class="panel">
+      <div id="ring"></div>
+      <div id="ring2"></div>
+      <div id="arc">◉</div>
+      <div id="status">Čakám na príkaz, kapitán</div>
+      <div class="command-box">
+        <input id="holo-input" type="text" placeholder="ZADAJ PRÍKAZ KAPITÁN..." />
+      </div>
+    </main>
+
+    <aside class="panel right-panel">
+      <h4>🧠 AI CORE</h4>
+      <div>Model: Muse Spark</div>
+      <div>Mode: ULTRA DEFENCE</div>
+      <div class="bar"><div class="fill fill-78"></div></div>
+      <br />
+      <h4>⚡ POWER</h4>
+      <div>Arc Reactor: <span id="powerLevel">97%</span></div>
+      <div class="bar"><div class="fill fill-97"></div></div>
+      <br />
+      <h4>🧾 SHORTCUTS</h4>
+      <div class="shortcut-list">
+        <button data-command="status">STATUS</button>
+        <button data-command="time">TIME</button>
+        <button data-command="scan">SCAN</button>
+        <button data-command="panic">PANIC</button>
+      </div>
+    </aside>
+
+    <section id="log" class="panel" aria-live="polite"></section>
+
+    <section id="holo-keyboard" class="panel">
+      <div id="keys">
+        <div class="key" data-value="Q">Q</div>
+        <div class="key" data-value="W">W</div>
+        <div class="key" data-value="E">E</div>
+        <div class="key" data-value="R">R</div>
+        <div class="key" data-value="T">T</div>
+        <div class="key" data-value="Y">Y</div>
+        <div class="key" data-value="U">U</div>
+        <div class="key" data-value="I">I</div>
+        <div class="key" data-value="O">O</div>
+        <div class="key" data-value="P">P</div>
+
+        <div class="key" data-value="A">A</div>
+        <div class="key" data-value="S">S</div>
+        <div class="key" data-value="D">D</div>
+        <div class="key" data-value="F">F</div>
+        <div class="key" data-value="G">G</div>
+        <div class="key" data-value="H">H</div>
+        <div class="key" data-value="J">J</div>
+        <div class="key" data-value="K">K</div>
+        <div class="key" data-value="L">L</div>
+        <div class="key red" data-action="backspace">⌫</div>
+
+        <div class="key" data-value="Z">Z</div>
+        <div class="key" data-value="X">X</div>
+        <div class="key" data-value="C">C</div>
+        <div class="key" data-value="V">V</div>
+        <div class="key" data-value="B">B</div>
+        <div class="key" data-value="N">N</div>
+        <div class="key" data-value="M">M</div>
+        <div class="key" data-value=",">,</div>
+        <div class="key" data-value=".">.</div>
+        <div class="key gold" data-action="enter">⏎</div>
+
+        <div class="key wide" data-action="bio">BIO</div>
+        <div class="key space" data-action="space">SPACE</div>
+        <div class="key wide" data-action="defence">DEFENCE</div>
+        <div class="key wide" data-action="panic">PANIC</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
