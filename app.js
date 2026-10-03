@@ -6,22 +6,36 @@ const clockEl = document.getElementById('clock');
 const networkStateEl = document.getElementById('networkState');
 const threatLevelEl = document.getElementById('threatLevel');
 const powerLevelEl = document.getElementById('powerLevel');
-
-const memory = [];
-const commandHistory = [];
+const moodValueEl = document.getElementById('moodValue');
+const moodFillEl = document.getElementById('moodFill');
 
 const state = {
   bioRegistered: !!localStorage.getItem('jarvis_bio'),
   voiceEnabled: false,
   audioEnabled: true,
+  mood: 'CALM',
 };
+
+function setMood(level) {
+  state.mood = level;
+  const moodMap = {
+    CALM: { text: 'CALM', className: 'calm' },
+    ALERT: { text: 'ALERT', className: 'alert' },
+    FOCUSED: { text: 'FOCUSED', className: 'focused' },
+    DEFENSIVE: { text: 'DEFENSIVE', className: 'defensive' },
+    CRITICAL: { text: 'CRITICAL', className: 'critical' }
+  };
+
+  const mood = moodMap[level] || moodMap.CALM;
+  moodValueEl.textContent = mood.text;
+  moodFillEl.className = `mood-fill ${mood.className}`;
+}
 
 function log(who, text) {
   const row = document.createElement('div');
   row.innerHTML = `<b>${who}:</b> ${text}`;
   logEl.appendChild(row);
   logEl.scrollTop = logEl.scrollHeight;
-  memory.push(`${who}: ${text}`);
 }
 
 function updateClock() {
@@ -120,6 +134,7 @@ function runSecurityAudit(domain) {
   const safeDomain = parseDomain(domain || 'example.com');
   setThreatLevel('MEDIUM');
   setNetworkState('ANALYZING');
+  setMood('DEFENSIVE');
 
   const results = [
     `Audit spustený pre ${safeDomain}`,
@@ -177,10 +192,12 @@ async function biometricLogin() {
 
     statusEl.textContent = 'ACCESS GRANTED';
     setNetworkState('ONLINE');
+    setMood('FOCUSED');
     return 'Identita potvrdená. Vitaj späť, kapitán.';
   } catch (e) {
     statusEl.textContent = 'LOCKED';
     setNetworkState('LOCKED');
+    setMood('CRITICAL');
     return 'Biometria zlyhala. Prístup zamietnutý.';
   }
 }
@@ -189,18 +206,20 @@ function parseCommand(raw) {
   const text = String(raw || '').trim();
   if (!text) return null;
 
-  commandHistory.push(text);
   const lower = text.toLowerCase();
 
   if (lower.includes('status') || lower.includes('stav')) {
+    setMood('CALM');
     return 'Systém online. Firewall aktívny. Bio-lock zapnutý. Dôsledná ochrana v režime REDLINE.';
   }
 
   if (lower.includes('hodín') || lower.includes('time') || lower.includes('čas')) {
+    setMood('CALM');
     return `Je ${new Date().toLocaleTimeString('sk-SK')}`;
   }
 
   if (lower.includes('dátum') || lower.includes('date') || lower.includes('deň')) {
+    setMood('CALM');
     return `Dnes je ${new Date().toLocaleDateString('sk-SK')}`;
   }
 
@@ -209,12 +228,14 @@ function parseCommand(raw) {
   if (lower.includes('plane crazy') || lower.includes('plane-crazy')) return openPage('https://www.roblox.com/games/12742348/Plane-Crazy', 'Plane Crazy');
 
   if (lower.includes('scan') || lower.includes('oskenuj') || lower.includes('skenuj')) {
+    setMood('ALERT');
     setNetworkState('SCANNING');
     setThreatLevel('MEDIUM');
     return 'Skenujem sieť. Hľadám zraniteľnosti a anomálie v okolí.';
   }
 
   if (lower.includes('scanlocal') || lower.includes('lokálny scan') || lower.includes('local scan')) {
+    setMood('FOCUSED');
     return simulateLocalScan();
   }
 
@@ -222,22 +243,26 @@ function parseCommand(raw) {
     const q = text.replace(/^(vyhľadaj|search|hľadaj)\s+/i, '').trim();
     if (!q) return 'Na čo mám vyhľadať?';
     window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+    setMood('ALERT');
     return `Vyhľadávam: ${q}`;
   }
 
   if (lower.includes('password') || lower.includes('heslo')) {
+    setMood('FOCUSED');
     const match = text.match(/(?:heslo|password)\s+(.+)/i);
     const value = match ? match[1] : 'MojeHeslo123';
     return checkPassword(value);
   }
 
   if (lower.includes('link') || lower.includes('odkaz')) {
+    setMood('FOCUSED');
     const match = text.match(/https?:\/\/[^\s]+/i);
     const url = match ? match[0] : 'https://example.com';
     return checkLink(url);
   }
 
   if (lower.includes('hash')) {
+    setMood('FOCUSED');
     const match = text.match(/hash\s+(sha-256|sha256|md5)\s+(.+)/i) || text.match(/hash\s+(.+)/i);
     if (match) {
       const algo = (match[1] || 'sha-256').toLowerCase().replace('sha256', 'sha-256');
@@ -248,38 +273,50 @@ function parseCommand(raw) {
   }
 
   if (lower.includes('dns')) {
+    setMood('ALERT');
     const match = text.match(/dns\s+([^\s]+)/i);
     const domain = match ? match[1] : 'example.com';
     return simulateDns(domain);
   }
 
   if (lower.includes('audit') || lower.includes('security') || lower.includes('oscanuj')) {
+    setMood('DEFENSIVE');
     const domain = text.replace(/^(.*?)(security|audit|oscanuj|audituj)\s+/i, '').trim() || 'example.com';
     return runSecurityAudit(domain);
   }
 
   if (lower.includes('help') || lower.includes('pomoc')) {
+    setMood('CALM');
     return 'Dostupné príkazy: status, time, password, link, hash, dns, audit, local scan, panic, biometria, help.';
   }
 
   if (lower.includes('panic') || lower.includes('panika')) {
+    setMood('CRITICAL');
     window.open('about:blank', '_self');
     return '🚨 PANIC MODE aktivovaný. Všetko sa uzatvára.';
   }
 
   if (lower.includes('biometric') || lower.includes('biometria') || lower.includes('unlock')) {
+    setMood('FOCUSED');
     return biometricLogin();
   }
 
   if (lower.includes('register biometric') || lower.includes('zaregistruj biometriu')) {
+    setMood('FOCUSED');
     return registerBiometric();
   }
 
+  if (lower.includes('mood') || lower.includes('stav systému') || lower.includes('system state')) {
+    return `SYSTEM STATE: ${state.mood}`;
+  }
+
   if (lower.includes('joke') || lower.includes('vtip')) {
+    setMood('ALERT');
     return 'Kapitán, keď previerka zistí phishingový link: “To bolo skvelé, ale už to je v logu.”';
   }
 
   if (lower.includes('toolkit') || lower.includes('security toolkit')) {
+    setMood('FOCUSED');
     return 'SECURITY TOOLKIT ONLINE: password checker, hash generator, link validator, DNS report, local scan, audit report.';
   }
 
@@ -318,6 +355,7 @@ function enableVoiceCommands() {
   recognition.onstart = () => {
     state.voiceEnabled = true;
     statusEl.textContent = 'POČÚVAM';
+    setMood('ALERT');
     log('JARVIS', 'Počúvam príkaz...');
   };
 
@@ -334,6 +372,7 @@ function enableVoiceCommands() {
   recognition.onend = () => {
     state.voiceEnabled = false;
     statusEl.textContent = 'Čakám na príkaz, kapitán';
+    setMood('CALM');
   };
 
   recognition.start();
@@ -411,6 +450,7 @@ document.querySelectorAll('.key').forEach((key) => {
 });
 
 window.addEventListener('load', () => {
+  setMood('CALM');
   log('JARVIS', 'JARVIS REDLINE online. Typ alebo klikni do klávesnice.');
   setNetworkState('ONLINE');
   setThreatLevel('LOW');
