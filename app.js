@@ -8,12 +8,17 @@ const threatLevelEl = document.getElementById('threatLevel');
 const powerLevelEl = document.getElementById('powerLevel');
 const moodValueEl = document.getElementById('moodValue');
 const moodFillEl = document.getElementById('moodFill');
+const weatherValueEl = document.getElementById('weatherValue');
+const weatherCodeEl = document.getElementById('weatherCode');
+const feedListEl = document.getElementById('feedList');
 
 const state = {
   bioRegistered: !!localStorage.getItem('jarvis_bio'),
   voiceEnabled: false,
   audioEnabled: true,
   mood: 'CALM',
+  weather: 'CLEAR SKY',
+  threats: ['SYSTEM CHECK: OK', 'SIGNAL: STABLE', 'BIO: ONLINE']
 };
 
 function setMood(level) {
@@ -29,6 +34,36 @@ function setMood(level) {
   const mood = moodMap[level] || moodMap.CALM;
   moodValueEl.textContent = mood.text;
   moodFillEl.className = `mood-fill ${mood.className}`;
+}
+
+function updateWeather() {
+  const weatherModes = [
+    ['CLEAR SKY', '17°C / STABLE'],
+    ['LOW CLOUD', '14°C / CALM'],
+    ['RED STORM', '12°C / ALERT'],
+    ['THERMAL SHIFT', '21°C / HIGH'],
+    ['DEFCON NIGHT', '9°C / DEFENSIVE']
+  ];
+  const pick = weatherModes[Math.floor(Math.random() * weatherModes.length)];
+  state.weather = pick[0];
+  weatherValueEl.textContent = pick[0];
+  weatherCodeEl.textContent = pick[1];
+}
+
+function updateThreatFeed() {
+  const items = [
+    '• SYSTEM CHECK: OK',
+    '• SIGNAL: STABLE',
+    '• BIO: ONLINE',
+    '• THREAT INDEX: LOW',
+    '• TRACKER: ACTIVE',
+    '• SECURITY CHANNEL: LOCKED'
+  ];
+
+  feedListEl.innerHTML = items
+    .slice(0, 6)
+    .map((item) => `<div>${item}</div>`)
+    .join('');
 }
 
 function log(who, text) {
@@ -135,17 +170,14 @@ function runSecurityAudit(domain) {
   setThreatLevel('MEDIUM');
   setNetworkState('ANALYZING');
   setMood('DEFENSIVE');
-
-  const results = [
+  return [
     `Audit spustený pre ${safeDomain}`,
     `HTTPS: ${safeDomain.startsWith('http') ? safeDomain : 'https://' + safeDomain}`,
     'Kontrola hlavičiek: securityheaders.com',
     'DNS overenie: SPF / DKIM / DMARC',
     'Kontrola únikov: haveibeenpwned.com',
     'Odporúčanie: zablokovať podozrivé subdomény a overiť certifikát.'
-  ];
-
-  return results.join(' | ');
+  ].join(' | ');
 }
 
 async function registerBiometric() {
@@ -223,6 +255,15 @@ function parseCommand(raw) {
     return `Dnes je ${new Date().toLocaleDateString('sk-SK')}`;
   }
 
+  if (lower.includes('weather') || lower.includes('počasie')) {
+    updateWeather();
+    return `Počasie: ${state.weather}`;
+  }
+
+  if (lower.includes('mood') || lower.includes('stav systému')) {
+    return `SYSTEM STATE: ${state.mood}`;
+  }
+
   if (lower.includes('youtube')) return openPage('https://youtube.com', 'YouTube');
   if (lower.includes('google')) return openPage('https://google.com', 'Google');
   if (lower.includes('plane crazy') || lower.includes('plane-crazy')) return openPage('https://www.roblox.com/games/12742348/Plane-Crazy', 'Plane Crazy');
@@ -287,7 +328,7 @@ function parseCommand(raw) {
 
   if (lower.includes('help') || lower.includes('pomoc')) {
     setMood('CALM');
-    return 'Dostupné príkazy: status, time, password, link, hash, dns, audit, local scan, panic, biometria, help.';
+    return 'Dostupné príkazy: status, weather, time, password, link, hash, dns, audit, local scan, panic, biometria, help.';
   }
 
   if (lower.includes('panic') || lower.includes('panika')) {
@@ -304,10 +345,6 @@ function parseCommand(raw) {
   if (lower.includes('register biometric') || lower.includes('zaregistruj biometriu')) {
     setMood('FOCUSED');
     return registerBiometric();
-  }
-
-  if (lower.includes('mood') || lower.includes('stav systému') || lower.includes('system state')) {
-    return `SYSTEM STATE: ${state.mood}`;
   }
 
   if (lower.includes('joke') || lower.includes('vtip')) {
@@ -451,6 +488,8 @@ document.querySelectorAll('.key').forEach((key) => {
 
 window.addEventListener('load', () => {
   setMood('CALM');
+  updateWeather();
+  updateThreatFeed();
   log('JARVIS', 'JARVIS REDLINE online. Typ alebo klikni do klávesnice.');
   setNetworkState('ONLINE');
   setThreatLevel('LOW');

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JARVIS MK3 – Cyber Security Console</title>
+  <title>JARVIS MK3 – AI Command & Defence System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body>
   <div id="hud">
     <div id="top" class="panel">
-      <div>◉ JARVIS MK3 // REDLINE SECURITY // DEFENCE ACTIVE</div>
+      <div>◉ JARVIS MK3 // AI COMMAND & DEFENCE SYSTEM</div>
       <div id="clock">00:00:00</div>
       <div id="systemStats">❤️ SYS: 100% | CPU: 9%</div>
     </div>
@@ -28,6 +28,11 @@
       <div>Network: <span id="networkState">SCANNING</span></div>
       <div>Biometrics: READY</div>
       <div>Threat level: <span id="threatLevel">LOW</span></div>
+      <br />
+      <h4>🛰️ SECTOR</h4>
+      <div>Zone: NEXUS-7</div>
+      <div>Signal: STABLE</div>
+      <div>Power: 98%</div>
     </aside>
 
     <main id="core" class="panel">
@@ -59,6 +64,12 @@
         </div>
       </div>
       <br />
+      <h4>🌤️ WEATHER</h4>
+      <div class="weather-box">
+        <div id="weatherValue">CLEAR SKY</div>
+        <div id="weatherCode">17°C / STABLE</div>
+      </div>
+      <br />
       <h4>🧰 TOOLKIT</h4>
       <div class="shortcut-list">
         <button data-command="audit">AUDIT</button>
@@ -73,6 +84,14 @@
     <section id="log" class="panel" aria-live="polite"></section>
 
     <section id="holo-keyboard" class="panel">
+      <div class="threat-feed">
+        <div class="feed-title">THREAT FEED</div>
+        <div class="feed-list" id="feedList">
+          <div>• SYSTEM CHECK: OK</div>
+          <div>• SIGNAL: STABLE</div>
+          <div>• BIO: ONLINE</div>
+        </div>
+      </div>
       <div id="keys">
         <div class="key" data-value="Q">Q</div>
         <div class="key" data-value="W">W</div>
