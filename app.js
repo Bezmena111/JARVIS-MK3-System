@@ -3,6 +3,7 @@ const inputEl = document.getElementById('holo-input');
 const statusEl = document.getElementById('status');
 const blockedEl = document.getElementById('blocked');
 const clockEl = document.getElementById('clock');
+const lockTimeEl = document.getElementById('lockTime');
 const networkStateEl = document.getElementById('networkState');
 const threatLevelEl = document.getElementById('threatLevel');
 const powerLevelEl = document.getElementById('powerLevel');
@@ -11,6 +12,11 @@ const moodFillEl = document.getElementById('moodFill');
 const weatherValueEl = document.getElementById('weatherValue');
 const weatherCodeEl = document.getElementById('weatherCode');
 const feedListEl = document.getElementById('feedList');
+const lockscreenEl = document.getElementById('lockscreen');
+const lockInputEl = document.getElementById('lockPassword');
+const lockErrorEl = document.getElementById('lockError');
+const hudEl = document.getElementById('hud');
+const masterCode = '77346244';
 
 const state = {
   bioRegistered: !!localStorage.getItem('jarvis_bio'),
@@ -18,8 +24,50 @@ const state = {
   audioEnabled: true,
   mood: 'CALM',
   weather: 'CLEAR SKY',
-  threats: ['SYSTEM CHECK: OK', 'SIGNAL: STABLE', 'BIO: ONLINE']
+  threats: ['SYSTEM CHECK: OK', 'SIGNAL: STABLE', 'BIO: ONLINE'],
+  unlocked: false
 };
+
+function updateLockClock() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('sk-SK');
+  if (clockEl) clockEl.textContent = time;
+  if (lockTimeEl) lockTimeEl.textContent = time;
+}
+
+function unlockSystem() {
+  state.unlocked = true;
+  if (lockscreenEl) {
+    lockscreenEl.classList.add('hidden');
+  }
+  if (hudEl) {
+    hudEl.style.display = 'grid';
+  }
+  statusEl.textContent = 'Čakám na príkaz, kapitán';
+  setMood('CALM');
+  setNetworkState('ONLINE');
+  setThreatLevel('LOW');
+  log('JARVIS', 'Systém odomknutý. Full potential access granted.');
+}
+
+function handleLockInput(value) {
+  const entered = String(value || '').trim();
+  if (!entered) {
+    lockErrorEl.textContent = 'Zadajte master kód.';
+    return;
+  }
+
+  if (entered === masterCode) {
+    lockErrorEl.textContent = 'Access granted. Welcome, Captain.';
+    lockErrorEl.style.color = '#ffd98c';
+    setTimeout(unlockSystem, 500);
+  } else {
+    lockErrorEl.textContent = 'Neplatný kód. Prístup zamietnutý.';
+    lockErrorEl.style.color = '#ff8c76';
+    lockInputEl.value = '';
+    lockInputEl.focus();
+  }
+}
 
 function setMood(level) {
   state.mood = level;
@@ -32,8 +80,8 @@ function setMood(level) {
   };
 
   const mood = moodMap[level] || moodMap.CALM;
-  moodValueEl.textContent = mood.text;
-  moodFillEl.className = `mood-fill ${mood.className}`;
+  if (moodValueEl) moodValueEl.textContent = mood.text;
+  if (moodFillEl) moodFillEl.className = `mood-fill ${mood.className}`;
 }
 
 function updateWeather() {
@@ -46,8 +94,8 @@ function updateWeather() {
   ];
   const pick = weatherModes[Math.floor(Math.random() * weatherModes.length)];
   state.weather = pick[0];
-  weatherValueEl.textContent = pick[0];
-  weatherCodeEl.textContent = pick[1];
+  if (weatherValueEl) weatherValueEl.textContent = pick[0];
+  if (weatherCodeEl) weatherCodeEl.textContent = pick[1];
 }
 
 function updateThreatFeed() {
@@ -60,10 +108,12 @@ function updateThreatFeed() {
     '• SECURITY CHANNEL: LOCKED'
   ];
 
-  feedListEl.innerHTML = items
-    .slice(0, 6)
-    .map((item) => `<div>${item}</div>`)
-    .join('');
+  if (feedListEl) {
+    feedListEl.innerHTML = items
+      .slice(0, 6)
+      .map((item) => `<div>${item}</div>`)
+      .join('');
+  }
 }
 
 function log(who, text) {
@@ -73,20 +123,14 @@ function log(who, text) {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
-function updateClock() {
-  const now = new Date();
-  clockEl.textContent = now.toLocaleTimeString('sk-SK');
-}
-setInterval(updateClock, 1000);
-updateClock();
-
 function setThreatLevel(level) {
+  if (!threatLevelEl) return;
   threatLevelEl.textContent = level;
   threatLevelEl.className = level === 'HIGH' ? 'warn' : level === 'MEDIUM' ? 'sec' : 'ok';
 }
 
 function setNetworkState(stateText) {
-  networkStateEl.textContent = stateText;
+  if (networkStateEl) networkStateEl.textContent = stateText;
 }
 
 function openPage(url, label) {
@@ -362,7 +406,7 @@ function parseCommand(raw) {
 
 async function executeCommand(inputValue) {
   const value = String(inputValue || '').trim();
-  if (!value) return;
+  if (!value || !state.unlocked) return;
 
   log('TY', value);
   const result = parseCommand(value);
@@ -486,7 +530,59 @@ document.querySelectorAll('.key').forEach((key) => {
   });
 });
 
+function createBootSequence() {
+  const boot = document.createElement('div');
+  boot.className = 'boot-overlay';
+  boot.innerHTML = `
+    <div class="boot-screen">
+      <div class="boot-header">JARVIS MK3 // SYSTEM BOOT SEQUENCE</div>
+      <div class="boot-lines">
+        <div class="active">> INITIALIZING CORE SYSTEMS...</div>
+        <div>> LINKING DEFENCE MATRIX...</div>
+        <div>> CALIBRATING AI COGNITION...</div>
+        <div>> SYNCING HYPER-DRIVE CHANNELS...</div>
+        <div>> READY FOR COMMAND</div>
+      </div>
+      <div class="boot-progress">
+        <div class="boot-progress-bar" id="bootProgressBar"></div>
+      </div>
+    </div>
+  `;
+  document.body.prepend(boot);
+
+  const lines = [...boot.querySelectorAll('.boot-lines div')];
+  const progress = boot.querySelector('#bootProgressBar');
+
+  let currentIndex = 0;
+  const bootInterval = setInterval(() => {
+    lines.forEach((line, index) => line.classList.toggle('active', index === currentIndex));
+    progress.style.width = `${((currentIndex + 1) / lines.length) * 100}%`;
+    currentIndex += 1;
+    if (currentIndex >= lines.length) {
+      clearInterval(bootInterval);
+    }
+  }, 420);
+
+  return boot;
+}
+
+function finishBootSequence() {
+  const boot = document.querySelector('.boot-overlay');
+  const hud = document.getElementById('hud');
+  if (!boot || !hud) return;
+
+  setTimeout(() => {
+    boot.classList.add('hidden');
+    hud.classList.remove('booting');
+    setTimeout(() => boot.remove(), 900);
+  }, 2200);
+}
+
 window.addEventListener('load', () => {
+  const hud = document.getElementById('hud');
+  if (hud) hud.classList.add('booting');
+
+  const boot = createBootSequence();
   setMood('CALM');
   updateWeather();
   updateThreatFeed();
@@ -503,6 +599,18 @@ window.addEventListener('load', () => {
   if (localStorage.getItem('jarvis_bio')) {
     log('JARVIS', 'Biometrický lock je aktivovaný.');
   }
+
+  statusEl.textContent = 'SYSTEM INITIALIZING';
+  setTimeout(() => {
+    statusEl.textContent = 'Čakám na príkaz, kapitán';
+  }, 2200);
+
+  finishBootSequence();
+  if (boot) {
+    setTimeout(() => {
+      boot.querySelector('#bootProgressBar').style.width = '100%';
+    }, 1700);
+  }
 });
 
 const voiceBtn = document.createElement('button');
@@ -513,3 +621,49 @@ const panel = document.querySelector('.right-panel');
 if (panel) {
   panel.appendChild(voiceBtn);
 }
+
+// Lock screen handler
+const lockSubmitBtn = document.getElementById('lockSubmit');
+const lockClearBtn = document.getElementById('lockClear');
+
+lockInputEl.addEventListener('input', (event) => {
+  event.target.value = event.target.value.replace(/\D/g, '').slice(0, 8);
+  if (lockErrorEl) lockErrorEl.textContent = '';
+});
+
+lockInputEl.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    handleLockInput(lockInputEl.value);
+  }
+});
+
+document.querySelectorAll('.keypad-btn').forEach((button) => {
+  button.addEventListener('click', () => {
+    const value = button.dataset.num;
+    if (lockInputEl.value.length < 8) {
+      lockInputEl.value += value;
+    }
+  });
+});
+
+if (lockSubmitBtn) {
+  lockSubmitBtn.addEventListener('click', () => {
+    handleLockInput(lockInputEl.value);
+  });
+}
+
+if (lockClearBtn) {
+  lockClearBtn.addEventListener('click', () => {
+    lockInputEl.value = '';
+    lockErrorEl.textContent = '';
+    lockInputEl.focus();
+  });
+}
+
+// Start hiding HUD until unlocked
+if (hudEl) {
+  hudEl.style.display = 'none';
+}
+
+setInterval(updateLockClock, 1000);
+updateLockClock();
